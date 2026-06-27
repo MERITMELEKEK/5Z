@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Kehadiran Realtime Firebase - SK Melekek</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+</head>
+<body class="bg-light">
+
+    <div class="container mt-4">
+        <div class="p-3 mb-4 bg-white rounded shadow-sm d-flex justify-content-between align-items-center">
+            <div>
+                <h2>Dashboard Kehadiran Masa-Nyata</h2>
+                <small class="text-muted">Seni Bina Pintar: Storan Vektor Nombor Wajah Firebase</small>
+            </div>
+            <span class="badge bg-secondary fs-6" id="statusAI">Memuatkan AI...</span>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card p-3 mb-3 shadow-sm text-center">
+                    <h5>Paparan Kamera Terkini</h5>
+                    <img id="imgSkrin" src="" class="img-thumbnail bg-dark w-100" style="min-height: 180px; transform: scaleX(-1);">
+                    <div id="statusProses" class="mt-2 fw-bold text-primary">Menunggu imbasan ESP32...</div>
+                </div>
+                <div class="card p-3 mb-3 bg-dark text-white text-center shadow-sm">
+                    <h5>Jumlah Kehadiran Hari Ini</h5>
+                    <h1 class="display-4 text-warning" id="statHadir">0</h1>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="card p-3 shadow-sm">
+                    <h5>Log Kehadiran Masuk (Masa-Nyata via Sheets)</h5>
+                    <table class="table table-striped mt-2">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Nama Peserta</th>
+                                <th>Masa Log Masuk</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalDaftar" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title">Wajah Baharu Dikesan!</h5>
+                </div>
+                <div class="modal-body">
+                    <p>Sistem tidak menemui kod vektor wajah ini dalam pangkalan data. Sila masukkan nama untuk pendaftaran terus:</p>
+                    <input type="text" id="namaBaruInput" class="form-control form-control-lg text-uppercase" placeholder="TAIP NAMA PENUH">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="btnHantarDaftar" class="btn btn-primary w-100 btn-lg">Daftar & Rekod Kehadiran</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Pautan Firebase & URL Google Web App yang telah dikemaskini
+        const FIREBASE_BASE_URL = "https://kehadiran-5z-default-rtdb.asia-southeast1.firebasedatabase.app";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbziWyBLYSjAV4W4XirFhUPoYVCQCwJztvAlKDqRAnvvvcHNMDWm8PbWjZTrId_RE6r-TQ/exec";
+
+        let senaraiWajahBerdaftar = [];
+        let sedangMemprosesMuka = false;
+        let descriptorWajahBaruGlobal = null;
+        let modalBootstrap = null;
+
+        async function initAI() {
+            modalBootstrap = new bootstrap.Modal(document.getElementById('modalDaftar'));
+            
+            const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
+            await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
+            await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+            await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+            
+            document.getElementById('statusAI').innerText = "Memuat Data Rujukan...";
+            document.getElementById('statusAI').className = "badge bg-warning text-dark fs-6";
+            
+            await muatRujukanWajahFirebase();
+            await muatLogGoogleSheets();
+            
+            document.getElementById('statusAI').innerText = "Sistem Masa-Nyata Sedia";
+            document.getElementById('statusAI').className = "badge bg-success fs-6";
+            
+            // Mulakan kitaran pemantauan data gambar dari Firebase
+            mendengarKameraFirebase();
+        }
+        window.onload = initAI;
+
+        // Muat turun data vektor teks rujukan daripada Firebase ke memori RAM Dashboard
+        async function muatRujukanWajahFirebase() {
+            try {
+                let res = await fetch(`${FIREBASE_BASE_URL}/wajah_berdaftar.json`);
+                let data = await res.json();
+                senaraiWajahBerdaftar = [];
+                if (data) {
+                    Object.keys(data).forEach(idKey => {
+                        let item = data[idKey];
+                        // Convert tatasusunan array JSON biasa balik kepada Float32Array untuk face-api
+                        let descFloat = new Float32Array(item.descriptor);
+                        senaraiWajahBerdaftar.push(new faceapi.LabeledFaceDescriptors(item.nama, [descFloat]));
+                    });
+                }
+            } catch(e) { console.log("Gagal muat rujukan:", e); }
+        }
+
+        // Ambil data log kehadiran daripada fail Google Sheets terkini
+        async function muatLogGoogleSheets() {
+            try {
+                let res = await fetch(GOOGLE_SCRIPT_URL + "?action=ambil_logs");
+                let data = await res.json();
+                const tBody = document.getElementById('logTableBody');
+                tBody.innerHTML = "";
+                let namaUnik = new Set();
+                
+                if(data.logs) {
+                    data.logs.reverse().forEach(log => {
+                        namaUnik.add(log[0]);
+                        tBody.innerHTML += `<tr><td><strong>${log[0]}</strong></td><td>${log[1]}</td></tr>`;
+                    });
+                }
+                document.getElementById('statHadir').innerText = namaUnik.size;
+            } catch(e) { console.log("Ralat memuatkan log Google Sheets:", e); }
+        }
+
+        function mendengarKameraFirebase() {
+            // Polling laju periksa Firebase Realtime Database
+            setInterval(async () => {
+                if (sedangMemprosesMuka) return;
+                try {
+                    let res = await fetch(`${FIREBASE_BASE_URL}/status_imbas.json`);
+                    let statusData = await res.json();
+                    
+                    if (statusData && statusData.respon_nama === "Memproses...") {
+                        sedangMemprosesMuka = true;
+                        document.getElementById('statusProses').innerText = "Mengecam Wajah (Masa-Nyata)...";
+                        
+                        let base64Imej = "data:image/jpeg;base64," + statusData.gambar_base64;
+                        document.getElementById('imgSkrin').src = base64Imej;
+                        
+                        await camanProsesMuka(base64Imej);
+                    }
+                } catch(e) { sedangMemprosesMuka = false; }
+            }, 1000);
+        }
+
+        async function camanProsesMuka(base64Imej) {
+            const img = await faceapi.fetchImage(base64Imej);
+            const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+            const masaSkg = new Date().toLocaleString("ms-MY");
+            
+            if (!detection) {
+                document.getElementById('statusProses').innerText = "Tiada wajah dikesan.";
+                await hantarResponFirebase("Tiada Wajah");
+                sedangMemprosesMuka = false;
+                return;
+            }
+
+            let hasilNama = "Unknown";
+            if (senaraiWajahBerdaftar.length > 0) {
+                const faceMatcher = new faceapi.FaceMatcher(senaraiWajahBerdaftar, 0.55);
+                const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
+                hasilNama = bestMatch.label;
+            }
+
+            if (hasilNama === "Unknown") {
+                // Jika wajah baharu, tahan pemprosesan dan timbulkan borang kemasukan nama
+                document.getElementById('statusProses').innerText = "Muka Baru! Menunggu input nama admin...";
+                descriptorWajahBaruGlobal = Array.from(detection.descriptor); // Ubah Float32 ke Array Biasa untuk Firebase JSON
+                document.getElementById('namaBaruInput').value = "";
+                modalBootstrap.show();
+            } else {
+                // Jika wajah dikenali, hantar nama ke Firebase & rekod log masuk ke Google Sheets
+                document.getElementById('statusProses').innerText = `Dikenali: ${hasilNama}`;
+                await hantarResponFirebase(hasilNama);
+                
+                await fetch(GOOGLE_SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "rekod_kehadiran", nama: hasilNama, masa: masaSkg })
+                });
+                
+                await muatLogGoogleSheets();
+                sedangMemprosesMuka = false;
+            }
+        }
+
+        // Cetusan fungsi apabila butang "Daftar & Rekod Kehadiran" ditekan
+        document.getElementById('btnHantarDaftar').addEventListener('click', async () => {
+            let namaInput = document.getElementById('namaBaruInput').value.trim().toUpperCase();
+            if(!namaInput) { alert("Sila taip nama penuh peserta!"); return; }
+            
+            modalBootstrap.hide();
+            document.getElementById('statusProses').innerText = "Menyimpan data vektor wajah...";
+            const masaSkg = new Date().toLocaleString("ms-MY");
+
+            // 1. Simpan kod vektor tatasusunan (bukan gambar) ke Firebase
+            await fetch(`${FIREBASE_BASE_URL}/wajah_berdaftar.json`, {
+                method: "POST",
+                body: JSON.stringify({ nama: namaInput, descriptor: descriptorWajahBaruGlobal })
+            });
+
+            // 2. Kemaskini maklum balas nama ke peranti ESP32-CAM melalui Firebase
+            await hantarResponFirebase(namaInput);
+
+            // 3. Simpan log kehadiran rasmi ke fail Google Sheets
+            await fetch(GOOGLE_SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "rekod_kehadiran", nama: namaInput, masa: masaSkg })
+            });
+
+            // Kemaskini sistem cache dalam memori RAM dashboard
+            await muatRujukanWajahFirebase();
+            await muatLogGoogleSheets();
+            
+            descriptorWajahBaruGlobal = null;
+            sedangMemprosesMuka = false;
+            document.getElementById('statusProses').innerText = "Pendaftaran berjaya diselesaikan!";
+        });
+
+        async function hantarResponFirebase(namaString) {
+            await fetch(`${FIREBASE_BASE_URL}/status_imbas.json`, {
+                method: "PATCH",
+                body: JSON.stringify({ respon_nama: namaString })
+            });
+        }
+    </script>
+</body>
+</html>
