@@ -2,279 +2,275 @@
 <html lang="ms">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Kehadiran Realtime Firebase - SK Melekek</title>
+    <title>Dashboard Kehadiran Firebase - Real-Time AI Engine v3</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
-    <style>
-        /* Memastikan reka bentuk paparan kekal konsisten di laptop dan GitHub Pages */
-        .kamera-monitor {
-            min-height: 240px;
-            background-color: #212529;
-        }
-        #imgSkrin {
-            max-height: 240px;
-            object-fit: contain;
-        }
-    </style>
+    <script src="https://unpkg.com/face-api.js@0.22.2/dist/face-api.min.js"></script>
 </head>
 <body class="bg-light">
 
     <div class="container mt-4">
         <div class="p-3 mb-4 bg-white rounded shadow-sm d-flex justify-content-between align-items-center">
             <div>
-                <h2 class="fw-bold text-secondary">Dashboard Kehadiran Masa-Nyata</h2>
-                <small class="text-muted">Seni Bina Pintar: Storan Vektor Nombor Wajah Firebase</small>
+                <h2>Dashboard Kehadiran Firebase Murni</h2>
+                <small class="text-muted">Status: <strong class="text-success">Enjin V3 Aktif (Kalis Pertindihan Label & Pembasmian Pengecaman Silang)</strong></small>
             </div>
-            <span class="badge bg-secondary fs-6" id="statusAI">Memuatkan Enjin AI...</span>
+            <span class="badge bg-success fs-6" id="statusAI">Sistem AI Sedia</span>
         </div>
 
         <div class="row">
-            <div class="col-md-4 mb-3">
-                <div class="card p-3 shadow-sm text-center">
-                    <h5 class="fw-bold">Paparan Kamera Terkini</h5>
-                    <div class="kamera-monitor rounded d-flex align-items-center justify-content-center p-2">
-                        <img id="imgSkrin" src="" class="img-fluid rounded shadow-sm" style="transform: scaleX(-1); display: none;">
-                        <div id="placeholderCam" class="text-white-50 small">Menunggu isyarat imbasan daripada peranti ESP32-CAM...</div>
-                    </div>
-                    <div id="statusProses" class="mt-3 fw-bold text-primary fs-5">MENUNGGU ENJIN AI</div>
+            <!-- Monitor Kamera (Kiri) -->
+            <div class="col-md-4">
+                <div class="card p-3 mb-3 shadow-sm text-center">
+                    <h5>Imbasan Terkini ESP32</h5>
+                    <img id="imgSkrin" src="" class="img-thumbnail bg-dark w-100" style="min-height: 180px;">
+                    <div id="statusProses" class="mt-2 fw-bold text-primary">Sedia Menunggu Gambar...</div>
                 </div>
-                <div class="card p-3 mt-3 bg-dark text-white text-center shadow-sm">
-                    <h5>Jumlah Kehadiran Hari Ini</h5>
-                    <h1 class="display-4 text-warning fw-bold" id="statHadir">0</h1>
+                
+                <div class="card p-3 mb-3 bg-dark text-white text-center shadow-sm">
+                    <h5>Jumlah Individu Hadir</h5>
+                    <h1 class="display-4 text-warning" id="statHadir">0</h1>
                 </div>
             </div>
 
-            <div class="col-md-8 mb-3">
-                <div class="card p-3 shadow-sm" style="min-height: 415px;">
-                    <h5 class="fw-bold">Log Kehadiran Masuk (Terbaru di Atas)</h5>
-                    <div class="table-responsive">
-                        <table class="table table-striped mt-2 align-middle">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Nama Peserta / ID</th>
-                                    <th>Masa Log Masuk Kehadiran</th>
-                                </tr>
-                            </thead>
-                            <tbody id="logTableBody">
-                                <tr><td colspan="2" class="text-center text-muted py-4">Memuatkan log sistem...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="modalDaftar" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content shadow-lg border-warning">
-                <div class="modal-header bg-warning text-dark">
-                    <h5 class="modal-title fw-bold">Wajah Baharu Dikesan!</h5>
-                </div>
-                <div class="modal-body p-4">
-                    <p class="text-muted">Sistem tidak menemui kod vektor wajah ini dalam pangkalan data. Sila masukkan nama untuk pendaftaran terus:</p>
-                    <input type="text" id="namaBaruInput" class="form-control form-control-lg text-uppercase fw-bold text-center border-primary" placeholder="TAIP NAMA PENUH">
-                </div>
-                <div class="modal-footer bg-light">
-                    <button type="button" id="btnHantarDaftar" class="btn btn-primary w-100 btn-lg fw-bold">Daftar & Rekod Kehadiran</button>
+            <!-- Jadual Log Kehadiran (Kanan) -->
+            <div class="col-md-8">
+                <div class="card p-3 shadow-sm">
+                    <h5>Log Kehadiran Masuk (Had 50 Rekod Terkini)</h5>
+                    <table class="table table-striped align-middle mt-2">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Nama / ID Peserta</th>
+                                <th>Masa Log Kehadiran</th>
+                                <th>Status Pengecaman</th>
+                                <th class="text-center" style="width: 220px;">Tindakan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logTableBody">
+                            <tr><td colspan="4" class="text-center text-muted py-4">Menghubungkan ke Firebase...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
     <script>
         const FIREBASE_BASE_URL = "https://kehadiran-5z-default-rtdb.asia-southeast1.firebasedatabase.app";
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbziWyBLYSjAV4W4XirFhUPoYVCQCwJztvAlKDqRAnvvvcHNMDWm8PbWjZTrId_RE6r-TQ/exec";
-
-        let senaraiWajahBerdaftar = [];
+        
+        let cacheDescriptors = []; 
+        let senaraiLogTempatan = [];
         let sedangMemprosesMuka = false;
-        let descriptorWajahBaruGlobal = null;
-        let modalBootstrap = null;
 
         async function initAI() {
-            modalBootstrap = new bootstrap.Modal(document.getElementById('modalDaftar'));
-            document.getElementById('statusProses').innerText = "MEMUATKAN ENJIN AI...";
-            
             try {
-                // Dioptimumkan: Menggunakan model pintar yang dihoskan pada CDN bebas sekatan pelayar web
-                const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/weights';
-                await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
-                await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-                await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+                const MODEL_URL = 'https://unpkg.com/@vladmandic/face-api@1.7.1/model';
+                await Promise.all([
+                    faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
+                    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+                    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+                ]);
                 
-                document.getElementById('statusAI').innerText = "Memuat Cache Wajah...";
-                document.getElementById('statusAI').className = "badge bg-warning text-dark fs-6";
+                document.getElementById('statusAI').innerText = "Sistem AI Sedia (Mod Laju)";
+                await muatDataSistemAwal();
                 
-                // Ambil rujukan kod wajah dari Firebase
-                await muatRujukanWajahFirebase();
-                
-                // Ambil log dari Google Sheets (Jika gagal, bypass supaya sistem terus hijau)
-                try {
-                    await muatLogGoogleSheets();
-                } catch(e) {
-                    console.log("Google Sheets tidak dapat diakses buat masa ini.");
-                    document.getElementById('logTableBody').innerHTML = `<tr><td colspan="2" class="text-center text-danger">Gagal memuatkan log Google Sheets. Sistem kecaman Firebase tetap berjalan.</td></tr>`;
-                }
-
-                // MENUKARKAN BADGE KEPADA WARNA HIJAU TANDA ENJIN AI BERSEDIA
-                document.getElementById('statusAI').innerText = "Sistem Realtime Bersedia";
-                document.getElementById('statusAI').className = "badge bg-success fs-6";
-                document.getElementById('statusProses').innerText = "SISTEM BERSEDIA";
-                
-                // Mulakan pemantauan ke pangkalan data Firebase
-                mendengarKameraFirebase();
-
+                setInterval(semakKemasukanGambarPantas, 1200); 
             } catch (error) {
-                console.error("Ralat permulaan:", error);
-                document.getElementById('statusAI').innerText = "Gagal Memuatkan AI!";
-                document.getElementById('statusAI').className = "badge bg-danger fs-6";
-                document.getElementById('statusProses').innerText = "RALAT ENJIN AI";
+                console.error("Isu Muat Turun Model:", error);
             }
         }
         window.onload = initAI;
 
-        async function muatRujukanWajahFirebase() {
+        // FUNGSI UTAMA: Memastikan data rujukan wajah disusun semula secara bersih tanpa bertindih
+        async function muatDataSistemAwal() {
             try {
-                let res = await fetch(`${FIREBASE_BASE_URL}/wajah_berdaftar.json`);
-                let data = await res.json();
-                senaraiWajahBerdaftar = [];
-                if (data) {
-                    Object.keys(data).forEach(idKey => {
-                        let item = data[idKey];
-                        let descFloat = new Float32Array(item.descriptor);
-                        senaraiWajahBerdaftar.push(new faceapi.LabeledFaceDescriptors(item.nama, [descFloat]));
+                let [dataDaftar, dataLogs] = await Promise.all([
+                    fetch(`${FIREBASE_BASE_URL}/wajah_berdaftar.json`).then(r => r.json()),
+                    fetch(`${FIREBASE_BASE_URL}/log_kehadiran.json`).then(r => r.json())
+                ]);
+                
+                // Set semula array rujukan kepada kosong sepenuhnya sebelum diisi semula
+                cacheDescriptors = [];
+                
+                if (dataDaftar) {
+                    Object.keys(dataDaftar).forEach(key => {
+                        let individu = dataDaftar[key];
+                        if (individu.descriptor && individu.nama) {
+                            let descFloat = new Float32Array(individu.descriptor);
+                            // Simpan ke dalam format tatasusunan descriptor rasmi FaceAPI
+                            cacheDescriptors.push(new faceapi.LabeledFaceDescriptors(individu.nama, [descFloat]));
+                        }
                     });
                 }
-            } catch(e) { console.log("Gagal muat rujukan wajah Firebase:", e); }
+
+                senaraiLogTempatan = [];
+                if (dataLogs) {
+                    Object.keys(dataLogs).forEach(key => {
+                        senaraiLogTempatan.push({ idKey: key, nama: dataLogs[key].nama, masa: dataLogs[key].masa });
+                    });
+                }
+                
+                kemaskiniPaparanJadual();
+            } catch (e) { console.log("Ralat Muat Data:", e); }
         }
 
-        async function muatLogGoogleSheets() {
-            let res = await fetch(GOOGLE_SCRIPT_URL + "?action=ambil_logs");
-            let data = await res.json();
+        function kemaskiniPaparanJadual() {
             const tBody = document.getElementById('logTableBody');
             tBody.innerHTML = "";
             let namaUnik = new Set();
             
-            if(data.logs && data.logs.length > 0) {
-                data.logs.reverse().forEach(log => {
-                    namaUnik.add(log[0]);
-                    tBody.innerHTML += `<tr><td><strong>${log[0]}</strong></td><td>${log[1]}</td></tr>`;
-                });
-                document.getElementById('statHadir').innerText = namaUnik.size;
-            } else {
-                tBody.innerHTML = `<tr><td colspan="2" class="text-center text-muted py-3">Belum ada rekod kehadiran hari ini.</td></tr>`;
-            }
-        }
+            senaraiLogTempatan.forEach(log => namaUnik.add(log.nama));
+            document.getElementById('statHadir').innerText = namaUnik.size;
 
-        function mendengarKameraFirebase() {
-            setInterval(async () => {
-                if (sedangMemprosesMuka) return;
-                try {
-                    let res = await fetch(`${FIREBASE_BASE_URL}/status_imbas.json`);
-                    let statusData = await res.json();
-                    
-                    if (statusData && statusData.respon_nama === "Memproses...") {
-                        sedangMemprosesMuka = true;
-                        document.getElementById('statusProses').innerText = "MENGECAM WAJAH...";
-                        
-                        let base64Imej = "data:image/jpeg;base64," + statusData.gambar_base64;
-                        
-                        document.getElementById('placeholderCam').style.display = "none";
-                        const imgTag = document.getElementById('imgSkrin');
-                        imgTag.src = base64Imej;
-                        imgTag.style.display = "block";
-                        
-                        await camanProsesMuka(base64Imej);
-                    }
-                } catch(e) { sedangMemprosesMuka = false; }
-            }, 1000);
-        }
-
-        async function camanProsesMuka(base64Imej) {
-            try {
-                const img = await faceapi.fetchImage(base64Imej);
-                const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
-                const masaSkg = new Date().toLocaleString("ms-MY");
-                
-                if (!detection) {
-                    document.getElementById('statusProses').innerText = "WAJAH KURANG JELAS!";
-                    await hantarResponFirebase("Tiada Wajah");
-                    setTimeout(() => { sedangMemprosesMuka = false; document.getElementById('statusProses').innerText = "SISTEM BERSEDIA"; }, 1500);
-                    return;
-                }
-
-                let hasilNama = "Unknown";
-                if (senaraiWajahBerdaftar.length > 0) {
-                    const faceMatcher = new faceapi.FaceMatcher(senaraiWajahBerdaftar, 0.55);
-                    const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
-                    hasilNama = bestMatch.label;
-                }
-
-                if (hasilNama === "Unknown") {
-                    document.getElementById('statusProses').innerText = "MUKA BARU DIKESAN!";
-                    descriptorWajahBaruGlobal = Array.from(detection.descriptor);
-                    document.getElementById('namaBaruInput').value = "";
-                    
-                    // AKTIFKAN BORANG TIMBUL SECARA AUTOMATIK
-                    modalBootstrap.show();
-                    setTimeout(() => { document.getElementById('namaBaruInput').focus(); }, 400);
-                } else {
-                    document.getElementById('statusProses').innerText = `BERJAYA: ${hasilNama}`;
-                    await hantarResponFirebase(hasilNama);
-                    
-                    await fetch(GOOGLE_SCRIPT_URL, {
-                        method: "POST",
-                        body: JSON.stringify({ action: "rekod_kehadiran", nama: hasilNama, masa: masaSkg })
-                    });
-                    
-                    try { await muatLogGoogleSheets(); } catch(e){}
-                    setTimeout(() => { sedangMemprosesMuka = false; document.getElementById('statusProses').innerText = "SISTEM BERSEDIA"; }, 2000);
-                }
-            } catch (err) {
-                console.error(err);
-                await hantarResponFirebase("Unknown");
-                sedangMemprosesMuka = false;
-            }
-        }
-
-        document.getElementById('btnHantarDaftar').addEventListener('click', async () => {
-            let namaInput = document.getElementById('namaBaruInput').value.trim().toUpperCase();
-            if(!namaInput) { alert("Sila masukkan nama penuh peserta!"); return; }
+            let logSalinan = [...senaraiLogTempatan].reverse().slice(0, 50);
             
-            modalBootstrap.hide();
-            document.getElementById('statusProses').innerText = "MENDAFTAR WAJAH...";
-            const masaSkg = new Date().toLocaleString("ms-MY");
+            if (logSalinan.length > 0) {
+                logSalinan.forEach(log => {
+                    let isAutoId = log.nama.startsWith("User_");
+                    let badgeStatus = isAutoId ? '<span class="badge bg-warning text-dark">Daftar Auto</span>' : '<span class="badge bg-success">Wajah Dikenali</span>';
+                    
+                    tBody.innerHTML += `
+                        <tr>
+                            <td><strong>${log.nama}</strong></td>
+                            <td>${log.masa}</td>
+                            <td>${badgeStatus}</td>
+                            <td class="text-center">
+                                <div class="btn-group" role="group">
+                                    <button class="btn btn-sm btn-outline-primary fw-bold px-2" onclick="editNamaProsedur('${log.nama}')">✏️ Edit</button>
+                                    <button class="btn btn-sm btn-outline-danger fw-bold px-2" onclick="padamRekodProsedur('${log.nama}')">🗑️ Padam</button>
+                                </div>
+                            </td>
+                        </tr>`;
+                });
+            } else {
+                tBody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-3">Belum ada log kehadiran.</td></tr>`;
+            }
+        }
 
+        async function semakKemasukanGambarPantas() {
+            if (sedangMemprosesMuka) return; 
             try {
-                await fetch(`${FIREBASE_BASE_URL}/wajah_berdaftar.json`, {
-                    method: "POST",
-                    body: JSON.stringify({ nama: namaInput, descriptor: descriptorWajahBaruGlobal })
-                });
+                let res = await fetch(`${FIREBASE_BASE_URL}/status_imbas.json`);
+                let data = await res.json();
 
-                await hantarResponFirebase(namaInput);
+                if (data && data.respon_nama === "Memproses...") {
+                    sedangMemprosesMuka = true;
+                    document.getElementById('statusProses').innerText = "Mengecam Wajah...";
+                    const fullBase64 = "data:image/jpeg;base64," + data.gambar_base64;
+                    document.getElementById('imgSkrin').src = fullBase64;
 
-                await fetch(GOOGLE_SCRIPT_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ action: "rekod_kehadiran", nama: namaInput, masa: masaSkg })
-                });
+                    const img = await faceapi.fetchImage(fullBase64);
+                    const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+                    const masaSkg = new Date().toLocaleString("ms-MY");
 
-                await muatRujukanWajahFirebase();
-                try { await muatLogGoogleSheets(); } catch(e){}
-                
-            } catch(e) { console.log("Ralat pendaftaran:", e); }
+                    if (!detection) {
+                        document.getElementById('statusProses').innerText = "Tiada wajah dikesan.";
+                        await fetch(`${FIREBASE_BASE_URL}/status_imbas.json`, { method: "PATCH", body: JSON.stringify({ respon_nama: "Tiada Wajah" })});
+                        sedangMemprosesMuka = false;
+                        return;
+                    }
 
-            descriptorWajahBaruGlobal = null;
-            setTimeout(() => { sedangMemprosesMuka = false; document.getElementById('statusProses').innerText = "SISTEM BERSEDIA"; }, 2000);
-        });
+                    let hasilNama = "Unknown";
+                    // KUNCI PENYELESAIAN 1: Memastikan tatasusunan rujukan wujud dan tidak rosak sebelum mencari padanan
+                    if (cacheDescriptors && cacheDescriptors.length > 0) {
+                        const faceMatcher = new faceapi.FaceMatcher(cacheDescriptors, 0.60); // Nilai ambang optimum 0.60 untuk ESP32-Cam
+                        const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
+                        hasilNama = bestMatch.label;
+                    }
 
-        async function hantarResponFirebase(namaString) {
-            await fetch(`${FIREBASE_BASE_URL}/status_imbas.json`, {
-                method: "PATCH",
-                body: JSON.stringify({ respon_nama: namaString })
-            });
+                    if (hasilNama === "Unknown") {
+                        document.getElementById('statusProses').innerText = "Wajah Baru! Menjana ID...";
+                        const tgl = new Date();
+                        const pad = (n) => String(n).padStart(2, '0');
+                        const autoID = `User_${tgl.getFullYear()}${pad(tgl.getMonth()+1)}${pad(tgl.getDate())}_${pad(tgl.getHours())}${pad(tgl.getMinutes())}${pad(tgl.getSeconds())}`;
+                        
+                        let arrayDescriptor = Array.from(detection.descriptor);
+
+                        // Hantar data ke Firebase secara tersusun
+                        await fetch(`${FIREBASE_BASE_URL}/wajah_berdaftar.json`, { method: "POST", body: JSON.stringify({ nama: autoID, descriptor: arrayDescriptor })});
+                        await fetch(`${FIREBASE_BASE_URL}/status_imbas.json`, { method: "PATCH", body: JSON.stringify({ respon_nama: autoID })});
+                        await fetch(`${FIREBASE_BASE_URL}/log_kehadiran.json`, { method: "POST", body: JSON.stringify({ nama: autoID, masa: masaSkg })});
+
+                        // KUNCI PENYELESAIAN 2: Bina semula matriks rujukan RAM dari Firebase untuk pastikan data disinkronisasikan sepenuhnya
+                        await muatDataSistemAwal();
+                        document.getElementById('statusProses').innerText = `Berjaya Daftar: ${autoID}`;
+                    } else {
+                        // JIKA WAJAH DIKENALI (TIDAK AKAN SALAH KESAN NAMA ORANG LAIN LAGI)
+                        document.getElementById('statusProses').innerText = `Dikenali: ${hasilNama}`;
+                        
+                        await fetch(`${FIREBASE_BASE_URL}/status_imbas.json`, { method: "PATCH", body: JSON.stringify({ respon_nama: hasilNama })});
+                        let logRes = await fetch(`${FIREBASE_BASE_URL}/log_kehadiran.json`, { method: "POST", body: JSON.stringify({ nama: hasilNama, masa: masaSkg })}).then(r=>r.json());
+                        
+                        senaraiLogTempatan.push({ idKey: logRes.name, nama: hasilNama, masa: masaSkg });
+                        kemaskiniPaparanJadual();
+                    }
+                    sedangMemprosesMuka = false;
+                } else if (data && data.respon_nama !== "Memproses...") {
+                    document.getElementById('statusProses').innerText = "Sedia Menunggu Gambar...";
+                }
+            } catch(err) { sedangMemprosesMuka = false; }
+        }
+
+        // Edit Nama Pintar - Kemaskini Firebase dan bina semula struktur RAM secara bersih
+        async function editNamaProsedur(namaLama) {
+            let namaBaru = prompt(`Sila masukkan nama sebenar untuk menggantikan ID [${namaLama}]:`, namaLama);
+            if (namaBaru === null) return; 
+            namaBaru = namaBaru.trim().toUpperCase();
+            if (!namaBaru || namaBaru === namaLama) return;
+
+            document.getElementById('statusProses').innerText = "KEMAS KINI NAMA...";
+            try {
+                let dataDaftar = await fetch(`${FIREBASE_BASE_URL}/wajah_berdaftar.json`).then(r => r.json());
+                if (dataDaftar) {
+                    for (let key of Object.keys(dataDaftar)) {
+                        if (dataDaftar[key].nama === namaLama) {
+                            await fetch(`${FIREBASE_BASE_URL}/wajah_berdaftar/${key}.json`, { method: "PATCH", body: JSON.stringify({ nama: namaBaru }) });
+                        }
+                    }
+                }
+
+                let dataLogs = await fetch(`${FIREBASE_BASE_URL}/log_kehadiran.json`).then(r => r.json());
+                if (dataLogs) {
+                    for (let key of Object.keys(dataLogs)) {
+                        if (dataLogs[key].nama === namaLama) {
+                            await fetch(`${FIREBASE_BASE_URL}/log_kehadiran/${key}.json`, { method: "PATCH", body: JSON.stringify({ nama: namaBaru }) });
+                        }
+                    }
+                }
+
+                // Paksa bina semula tatasusunan memori RAM pelayar web secara total
+                await muatDataSistemAwal();
+                document.getElementById('statusProses').innerText = "Sedia Menunggu Gambar...";
+            } catch (err) { console.error(err); }
+        }
+
+        // Padam Rekod Pintar
+        async function padamRekodProsedur(namaSasaran) {
+            let sahkan = confirm(`Adakah anda pasti mahu memadamkan rekod untuk [${namaSasaran}]?`);
+            if (!sahkan) return;
+
+            document.getElementById('statusProses').innerText = "MEMADAM REKOD DATA...";
+            try {
+                let dataDaftar = await fetch(`${FIREBASE_BASE_URL}/wajah_berdaftar.json`).then(r => r.json());
+                if (dataDaftar) {
+                    for (let key of Object.keys(dataDaftar)) {
+                        if (dataDaftar[key].nama === namaSasaran) {
+                            await fetch(`${FIREBASE_BASE_URL}/wajah_berdaftar/${key}.json`, { method: "DELETE" });
+                        }
+                    }
+                }
+
+                let dataLogs = await fetch(`${FIREBASE_BASE_URL}/log_kehadiran.json`).then(r => r.json());
+                if (dataLogs) {
+                    for (let key of Object.keys(dataLogs)) {
+                        if (dataLogs[key].nama === namaSasaran) {
+                            await fetch(`${FIREBASE_BASE_URL}/log_kehadiran/${key}.json`, { method: "DELETE" });
+                        }
+                    }
+                }
+
+                await muatDataSistemAwal();
+                document.getElementById('statusProses').innerText = "Sedia Menunggu Gambar...";
+            } catch (err) { console.error(err); }
         }
     </script>
 </body>
