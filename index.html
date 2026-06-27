@@ -5,51 +5,59 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Kehadiran Realtime Firebase - SK Melekek</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Menggunakan CDN face-api.js alternatif yang lebih stabil jika GitHub disekat -->
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <style>
+        /* Memastikan reka bentuk paparan kekal konsisten di laptop dan GitHub Pages */
+        .kamera-monitor {
+            min-height: 240px;
+            background-color: #212529;
+        }
+        #imgSkrin {
+            max-height: 240px;
+            object-fit: contain;
+        }
+    </style>
 </head>
 <body class="bg-light">
 
     <div class="container mt-4">
         <div class="p-3 mb-4 bg-white rounded shadow-sm d-flex justify-content-between align-items-center">
             <div>
-                <h2>Dashboard Kehadiran Masa-Nyata</h2>
+                <h2 class="fw-bold text-secondary">Dashboard Kehadiran Masa-Nyata</h2>
                 <small class="text-muted">Seni Bina Pintar: Storan Vektor Nombor Wajah Firebase</small>
             </div>
             <span class="badge bg-secondary fs-6" id="statusAI">Memuatkan Enjin AI...</span>
         </div>
 
         <div class="row">
-            <!-- Bahagian Kiri: Monitor Aliran Data -->
-            <div class="col-md-4">
-                <div class="card p-3 mb-3 shadow-sm text-center">
-                    <h5>Paparan Kamera Terkini</h5>
-                    <div class="bg-dark rounded d-flex align-items-center justify-content-center" style="min-height: 240px;">
-                        <img id="imgSkrin" src="" class="img-fluid rounded" style="transform: scaleX(-1); display: none;">
-                        <div id="placeholderCam" class="text-white-50 p-2">Menunggu isyarat imbasan pertama daripada ESP32-CAM...</div>
+            <div class="col-md-4 mb-3">
+                <div class="card p-3 shadow-sm text-center">
+                    <h5 class="fw-bold">Paparan Kamera Terkini</h5>
+                    <div class="kamera-monitor rounded d-flex align-items-center justify-content-center p-2">
+                        <img id="imgSkrin" src="" class="img-fluid rounded shadow-sm" style="transform: scaleX(-1); display: none;">
+                        <div id="placeholderCam" class="text-white-50 small">Menunggu isyarat imbasan daripada peranti ESP32-CAM...</div>
                     </div>
-                    <div id="statusProses" class="mt-3 fw-bold text-primary fs-5">SISTEM BERSEDIA</div>
+                    <div id="statusProses" class="mt-3 fw-bold text-primary fs-5">MENUNGGU ENJIN AI</div>
                 </div>
-                <div class="card p-3 mb-3 bg-dark text-white text-center shadow-sm">
+                <div class="card p-3 mt-3 bg-dark text-white text-center shadow-sm">
                     <h5>Jumlah Kehadiran Hari Ini</h5>
-                    <h1 class="display-4 text-warning" id="statHadir">0</h1>
+                    <h1 class="display-4 text-warning fw-bold" id="statHadir">0</h1>
                 </div>
             </div>
 
-            <!-- Bahagian Kanan: Log Masuk -->
-            <div class="col-md-8">
-                <div class="card p-3 shadow-sm" style="min-height: 400px;">
-                    <h5>Log Kehadiran Masuk (Terbaru di Atas)</h5>
+            <div class="col-md-8 mb-3">
+                <div class="card p-3 shadow-sm" style="min-height: 415px;">
+                    <h5 class="fw-bold">Log Kehadiran Masuk (Terbaru di Atas)</h5>
                     <div class="table-responsive">
-                        <table class="table table-striped mt-2">
+                        <table class="table table-striped mt-2 align-middle">
                             <thead class="table-dark">
                                 <tr>
-                                    <th>Nama Peserta</th>
-                                    <th>Masa Log Masuk</th>
+                                    <th>Nama Peserta / ID</th>
+                                    <th>Masa Log Masuk Kehadiran</th>
                                 </tr>
                             </thead>
                             <tbody id="logTableBody">
-                                <tr><td colspan="2" class="text-center text-muted">Tiada data log dijumpai buat masa ini.</td></tr>
+                                <tr><td colspan="2" class="text-center text-muted py-4">Memuatkan log sistem...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -58,7 +66,6 @@
         </div>
     </div>
 
-    <!-- BORANG DAFTAR TIMBUL (POP-UP MODAL) -->
     <div class="modal fade" id="modalDaftar" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content shadow-lg border-warning">
@@ -77,6 +84,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
         const FIREBASE_BASE_URL = "https://kehadiran-5z-default-rtdb.asia-southeast1.firebasedatabase.app";
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbziWyBLYSjAV4W4XirFhUPoYVCQCwJztvAlKDqRAnvvvcHNMDWm8PbWjZTrId_RE6r-TQ/exec";
@@ -88,10 +96,11 @@
 
         async function initAI() {
             modalBootstrap = new bootstrap.Modal(document.getElementById('modalDaftar'));
+            document.getElementById('statusProses').innerText = "MEMUATKAN ENJIN AI...";
             
             try {
-                // Muat turun model AI pengecaman wajah
-                const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
+                // Dioptimumkan: Menggunakan model pintar yang dihoskan pada CDN bebas sekatan pelayar web
+                const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/weights';
                 await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
                 await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
                 await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
@@ -99,23 +108,30 @@
                 document.getElementById('statusAI').innerText = "Memuat Cache Wajah...";
                 document.getElementById('statusAI').className = "badge bg-warning text-dark fs-6";
                 
-                // Muat rujukan wajah dari Firebase
+                // Ambil rujukan kod wajah dari Firebase
                 await muatRujukanWajahFirebase();
                 
-                // Cuba muat log Google Sheets secara asing (Jika gagal/slow, sistem tetap jalan)
-                muatLogGoogleSheets().catch(e => console.log("Google Sheets offline/lambat, skip dahulu."));
+                // Ambil log dari Google Sheets (Jika gagal, bypass supaya sistem terus hijau)
+                try {
+                    await muatLogGoogleSheets();
+                } catch(e) {
+                    console.log("Google Sheets tidak dapat diakses buat masa ini.");
+                    document.getElementById('logTableBody').innerHTML = `<tr><td colspan="2" class="text-center text-danger">Gagal memuatkan log Google Sheets. Sistem kecaman Firebase tetap berjalan.</td></tr>`;
+                }
 
+                // MENUKARKAN BADGE KEPADA WARNA HIJAU TANDA ENJIN AI BERSEDIA
                 document.getElementById('statusAI').innerText = "Sistem Realtime Bersedia";
                 document.getElementById('statusAI').className = "badge bg-success fs-6";
+                document.getElementById('statusProses').innerText = "SISTEM BERSEDIA";
                 
-                // Jalankan sistem mendengar Firebase secara terus
+                // Mulakan pemantauan ke pangkalan data Firebase
                 mendengarKameraFirebase();
 
             } catch (error) {
-                console.error(error);
-                document.getElementById('statusAI').innerText = "Gagal Memuatkan AI! Periksa Internet";
+                console.error("Ralat permulaan:", error);
+                document.getElementById('statusAI').innerText = "Gagal Memuatkan AI!";
                 document.getElementById('statusAI').className = "badge bg-danger fs-6";
-                document.getElementById('statusProses').innerText = "Ralat: Gagal berhubung dengan pelayan AI.";
+                document.getElementById('statusProses').innerText = "RALAT ENJIN AI";
             }
         }
         window.onload = initAI;
@@ -132,32 +148,28 @@
                         senaraiWajahBerdaftar.push(new faceapi.LabeledFaceDescriptors(item.nama, [descFloat]));
                     });
                 }
-                console.log("Wajah berdaftar dimuatkan:", senaraiWajahBerdaftar.length);
-            } catch(e) { console.log("Gagal muat rujukan wajah dari Firebase:", e); }
+            } catch(e) { console.log("Gagal muat rujukan wajah Firebase:", e); }
         }
 
         async function muatLogGoogleSheets() {
-            try {
-                let res = await fetch(GOOGLE_SCRIPT_URL + "?action=ambil_logs");
-                let data = await res.json();
-                const tBody = document.getElementById('logTableBody');
-                tBody.innerHTML = "";
-                let namaUnik = new Set();
-                
-                if(data.logs && data.logs.length > 0) {
-                    data.logs.reverse().forEach(log => {
-                        namaUnik.add(log[0]);
-                        tBody.innerHTML += `<tr><td><strong>${log[0]}</strong></td><td>${log[1]}</td></tr>`;
-                    });
-                    document.getElementById('statHadir').innerText = namaUnik.size;
-                } else {
-                    tBody.innerHTML = `<tr><td colspan="2" class="text-center text-muted">Belum ada kehadiran direkodkan hari ini.</td></tr>`;
-                }
-            } catch(e) { console.log("Ralat log Google:", e); }
+            let res = await fetch(GOOGLE_SCRIPT_URL + "?action=ambil_logs");
+            let data = await res.json();
+            const tBody = document.getElementById('logTableBody');
+            tBody.innerHTML = "";
+            let namaUnik = new Set();
+            
+            if(data.logs && data.logs.length > 0) {
+                data.logs.reverse().forEach(log => {
+                    namaUnik.add(log[0]);
+                    tBody.innerHTML += `<tr><td><strong>${log[0]}</strong></td><td>${log[1]}</td></tr>`;
+                });
+                document.getElementById('statHadir').innerText = namaUnik.size;
+            } else {
+                tBody.innerHTML = `<tr><td colspan="2" class="text-center text-muted py-3">Belum ada rekod kehadiran hari ini.</td></tr>`;
+            }
         }
 
         function mendengarKameraFirebase() {
-            // Gelung semakan data Firebase laju (1 saat sekali)
             setInterval(async () => {
                 if (sedangMemprosesMuka) return;
                 try {
@@ -166,22 +178,18 @@
                     
                     if (statusData && statusData.respon_nama === "Memproses...") {
                         sedangMemprosesMuka = true;
-                        document.getElementById('statusProses').innerText = "Mengecam Wajah...";
+                        document.getElementById('statusProses').innerText = "MENGECAM WAJAH...";
                         
                         let base64Imej = "data:image/jpeg;base64," + statusData.gambar_base64;
                         
-                        // Paparkan imej pada monitor skrin web
                         document.getElementById('placeholderCam').style.display = "none";
                         const imgTag = document.getElementById('imgSkrin');
                         imgTag.src = base64Imej;
                         imgTag.style.display = "block";
                         
-                        // Jalankan fungsi pengesanan AI
                         await camanProsesMuka(base64Imej);
                     }
-                } catch(e) { 
-                    sedangMemprosesMuka = false; 
-                }
+                } catch(e) { sedangMemprosesMuka = false; }
             }, 1000);
         }
 
@@ -192,9 +200,9 @@
                 const masaSkg = new Date().toLocaleString("ms-MY");
                 
                 if (!detection) {
-                    document.getElementById('statusProses').innerText = "Wajah Kurang Jelas!";
+                    document.getElementById('statusProses').innerText = "WAJAH KURANG JELAS!";
                     await hantarResponFirebase("Tiada Wajah");
-                    setTimeout(() => { sedangMemprosesMuka = false; }, 1500);
+                    setTimeout(() => { sedangMemprosesMuka = false; document.getElementById('statusProses').innerText = "SISTEM BERSEDIA"; }, 1500);
                     return;
                 }
 
@@ -206,25 +214,23 @@
                 }
 
                 if (hasilNama === "Unknown") {
-                    document.getElementById('statusProses').innerText = "Muka Baru Dikesan!";
+                    document.getElementById('statusProses').innerText = "MUKA BARU DIKESAN!";
                     descriptorWajahBaruGlobal = Array.from(detection.descriptor);
                     document.getElementById('namaBaruInput').value = "";
                     
-                    // MEMAKSA POPUP KELUAR SECARA REALTIME
+                    // AKTIFKAN BORANG TIMBUL SECARA AUTOMATIK
                     modalBootstrap.show();
-                    // Fokus automatik ke ruangan menaip nama
-                    setTimeout(() => { document.getElementById('namaBaruInput').focus(); }, 500);
+                    setTimeout(() => { document.getElementById('namaBaruInput').focus(); }, 400);
                 } else {
                     document.getElementById('statusProses').innerText = `BERJAYA: ${hasilNama}`;
                     await hantarResponFirebase(hasilNama);
                     
-                    // Hantar log kehadiran ke Google Sheets latar belakang
                     await fetch(GOOGLE_SCRIPT_URL, {
                         method: "POST",
                         body: JSON.stringify({ action: "rekod_kehadiran", nama: hasilNama, masa: masaSkg })
                     });
                     
-                    await muatLogGoogleSheets();
+                    try { await muatLogGoogleSheets(); } catch(e){}
                     setTimeout(() => { sedangMemprosesMuka = false; document.getElementById('statusProses').innerText = "SISTEM BERSEDIA"; }, 2000);
                 }
             } catch (err) {
@@ -239,30 +245,26 @@
             if(!namaInput) { alert("Sila masukkan nama penuh peserta!"); return; }
             
             modalBootstrap.hide();
-            document.getElementById('statusProses').innerText = "Mendaftarkan wajah baharu...";
+            document.getElementById('statusProses').innerText = "MENDAFTAR WAJAH...";
             const masaSkg = new Date().toLocaleString("ms-MY");
 
             try {
-                // 1. Simpan kod vektor koordinat wajah ke Firebase
                 await fetch(`${FIREBASE_BASE_URL}/wajah_berdaftar.json`, {
                     method: "POST",
                     body: JSON.stringify({ nama: namaInput, descriptor: descriptorWajahBaruGlobal })
                 });
 
-                // 2. Kirim maklum balas nama untuk LCD perkakasan
                 await hantarResponFirebase(namaInput);
 
-                // 3. Masukkan ke log kehadiran Google Sheets
                 await fetch(GOOGLE_SCRIPT_URL, {
                     method: "POST",
                     body: JSON.stringify({ action: "rekod_kehadiran", nama: namaInput, masa: masaSkg })
                 });
 
-                // Kemaskini data ingatan RAM web
                 await muatRujukanWajahFirebase();
-                await muatLogGoogleSheets();
+                try { await muatLogGoogleSheets(); } catch(e){}
                 
-            } catch(e) { console.log("Gagal proses pendaftaran penuh:", e); }
+            } catch(e) { console.log("Ralat pendaftaran:", e); }
 
             descriptorWajahBaruGlobal = null;
             setTimeout(() => { sedangMemprosesMuka = false; document.getElementById('statusProses').innerText = "SISTEM BERSEDIA"; }, 2000);
